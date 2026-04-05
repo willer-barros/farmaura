@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User{
+  id  String @id @default(cuid())
+  name  String
+  email String  @unique
+  role  Role @default(STUDENT)
+  avatarUrl String?
+  createdAt DateTime  @default(now())
+
+  hostedSessions  Session[] @relation("HostedBy")
+  participations  SessionParticipant[]
+  auraEventsReceived  AuraEvent[]
+}
+
+enum Role {
+  TEACHER
+  STUDENT
+}
+
+model Session{
+  id  String  @id @default(cuid())
+  name  String
+  code String @unique
+  status  SessionStatus @default(WAITING)
+  hostId  String
+  createdAt DateTime  @default(now())
+  endAt DateTime?
+
+  host         User                 @relation("HostedBy", fields: [hostId], references: [id])
+  participants SessionParticipant[]
+  auraEvents   AuraEvent[]
+}
+
+enum SessionStatus {
+  WAITING    
+  ACTIVE    
+  ENDED     
+}
+
+model SessionParticipant {
+  id        String  @id @default(cuid())
+  sessionId String
+  userId    String
+  aura      Int     @default(0)
+  joinedAt  DateTime @default(now())
+
+  session   Session @relation(fields: [sessionId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@unique([sessionId, userId])
+}
+
+model AuraEvent {
+  id          String    @id @default(cuid())
+  sessionId   String
+  userId      String    // quem recebeu
+  amount      Int       // positivo ou negativo
+  reason      AuraReason
+  createdAt   DateTime  @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+}
+
+enum AuraReason {
+  QUIZ_ANSWER
+  ACTIVITY
+  TEACHER_MANUA
+  BONUS            
+}
