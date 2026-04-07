@@ -31,11 +31,15 @@ export default function SessaoPage() {
   const [ending, setEnding] = useState(false)
 
   // Carrega dados da sessão
-  useEffect(() => {
-    fetch(`/api/sessions/${id}`)
-      .then(r => r.json())
-      .then(setSession)
-  }, [id])
+useEffect(() => {
+  fetch(`/api/sessions/${id}`)
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      return r.json()
+    })
+    .then(setSession)
+    .catch(err => console.error('Erro ao buscar sessão:', err))
+}, [id])
 
   // SSE — ranking em tempo real
   useEffect(() => {

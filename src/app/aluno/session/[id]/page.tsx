@@ -46,7 +46,7 @@ export default function AlunoSessaoPage() {
       const sessionData = await sessionRes.json()
       if (sessionData.status === 'ENDED') {
         es.close()
-        router.push(`/aluno/sessao/${id}/ranking`)
+        router.push(`/aluno/session/${id}/ranking`)
       }
     }
 
