@@ -7,34 +7,60 @@ export default function ProfessorPage() {
   const [name, setName] = useState('')
   const [sessionName, setSessionName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleCreate() {
     setLoading(true)
+    setError('')
 
-    // 1. Cria ou recupera o professor
-    const userRes = await fetch('/api/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email: `${name.toLowerCase().replace(/\s/g, '.')}@professor.farmaura` }),
-    })
-    const user = await userRes.json()
+    try {
+      // 1. Cria ou recupera o professor
+      const userRes = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email: `${name.toLowerCase().replace(/\s/g, '.')}@professor.farmaura`,
+        }),
+      })
 
-    // 2. Cria a sessão
-    const sessionRes = await fetch('/api/sessions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: sessionName, hostId: user.id }),
-    })
-    const session = await sessionRes.json()
+      if (!userRes.ok) {
+        const err = await userRes.json()
+        throw new Error(`Erro ao criar usuário: ${JSON.stringify(err)}`)
+      }
 
-    // 3. Salva no localStorage e redireciona
-    localStorage.setItem('professorId', user.id)
-    router.push(`/professor/session/${session.id}`)
-    setLoading(false)
+      const user = await userRes.json()
+      if (!user?.id) throw new Error('Usuário retornou sem ID')
+
+      // 2. Cria a sessão
+      const sessionRes = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: sessionName, hostId: user.id }),
+      })
+
+      if (!sessionRes.ok) {
+        const err = await sessionRes.json()
+        throw new Error(`Erro ao criar sessão: ${JSON.stringify(err)}`)
+      }
+
+      const session = await sessionRes.json()
+      if (!session?.id) throw new Error('Sessão retornou sem ID')
+
+      // 3. Salva e redireciona
+      localStorage.setItem('professorId', user.id)
+      router.push(`/professor/sessao/${session.id}`)
+
+    } catch (err) {
+      console.error(err)
+      setError(String(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-linear-to-br from-green-900 to-emerald-950 p-6">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-900 to-emerald-950 p-6">
       <div className="bg-white/10 backdrop-blur-md rounded-3xl p-10 w-full max-w-md flex flex-col gap-6">
         <div className="text-center">
           <h1 className="text-4xl font-black text-white">🌾 FarmAura</h1>
@@ -63,6 +89,12 @@ export default function ProfessorPage() {
               className="w-full bg-white/10 text-white placeholder-white/40 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
             />
           </div>
+
+          {error && (
+            <p className="text-red-400 text-sm bg-red-400/10 rounded-xl px-4 py-3">
+              {error}
+            </p>
+          )}
 
           <button
             onClick={handleCreate}
