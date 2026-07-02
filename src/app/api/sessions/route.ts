@@ -26,7 +26,7 @@ export async function PATCH(req: Request) {
     where: { id },
     data: {
       status,
-      endedAt: status === 'ENDED' ? new Date() : undefined,
+      endAt: status === 'ENDED' ? new Date() : undefined,
     },
   })
 

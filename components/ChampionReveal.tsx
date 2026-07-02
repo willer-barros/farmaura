@@ -1,6 +1,11 @@
-// src/components/ChampionReveal.tsx
 import Confetti from 'react-confetti'
 import { motion } from 'framer-motion'
+
+type Participant = {
+  userId: string
+  aura: number
+  user: { id: string; name: string; avatarUrl: string | null }
+}
 
 export function ChampionReveal({ champion }: { champion: Participant }) {
   return (
@@ -13,7 +18,7 @@ export function ChampionReveal({ champion }: { champion: Participant }) {
         className="flex flex-col items-center gap-6 text-center"
       >
         <motion.img
-          src={champion.user.avatarUrl}
+          src={champion.user.avatarUrl ?? `https://api.dicebear.com/7.x/bottts/svg?seed=${champion.userId}`}
           className="w-40 h-40 rounded-full border-8 border-yellow-400 shadow-2xl"
           animate={{ y: [0, -12, 0] }}
           transition={{ repeat: Infinity, duration: 2 }}
